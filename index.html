@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>오늘의 급식 픽</title>
+    <!-- Google Fonts: Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Material Symbols Outlined -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        signature: '#2BA84A',
+                        signatureDark: '#1e7834',
+                        accentYellow: '#FFDF8E',
+                        bgSoft: '#F4F7F4',
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F4F7F4;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Responsive App Shell (Fluid width from Mobile to Desktop) */
+        .app-frame {
+            width: 100%;
+            max-width: 768px; /* 태블릿 및 데스크톱 대응 */
+            min-height: 100vh;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        @media (min-width: 768px) {
+            .app-frame {
+                min-height: 900px;
+                height: 90vh;
+                margin: 24px auto;
+                border-radius: 28px;
+                border: 1px solid #E2E8F0;
+            }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-emerald-50/40">
+
+    <!-- Responsive Mobile/Tablet/Desktop Container -->
+    <div class="app-frame relative flex flex-col justify-between w-full">
+        
+        <!-- Header (Responsive Spacing) -->
+        <header class="bg-signature text-white px-5 sm:px-8 py-4 flex justify-between items-center shadow-md z-10 sticky top-0">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('home')">
+                <span class="material-symbols-outlined text-3xl sm:text-4xl text-accentYellow">eco</span>
+                <div>
+                    <h1 class="font-black text-xl sm:text-2xl leading-tight">오늘의 급식 픽</h1>
+                    <p class="text-[11px] sm:text-xs text-green-100 font-light">맛있게 먹고 잔반 ZERO!</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 sm:gap-2">
+                <button class="p-2 hover:bg-signatureDark rounded-full transition" onclick="resetAllDataDataConfirm()" title="데이터 초기화">
+                    <span class="material-symbols-outlined text-xl sm:text-2xl text-red-200">restart_alt</span>
+                </button>
+                <button class="p-2 hover:bg-signatureDark rounded-full transition" onclick="showToast('새로고침해도 정보가 안전하게 자동 저장됩니다!')" title="저장 상태">
+                    <span class="material-symbols-outlined text-xl sm:text-2xl text-emerald-200">cloud_done</span>
+                </button>
+                <button class="p-2 hover:bg-signatureDark rounded-full transition" onclick="switchTab('store')">
+                    <span class="material-symbols-outlined text-xl sm:text-2xl text-accentYellow">shopping_bag</span>
+                </button>
+                <button class="p-2 hover:bg-signatureDark rounded-full transition" onclick="toggleAIChat()">
+                    <span class="material-symbols-outlined text-xl sm:text-2xl text-amber-200">smart_toy</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (Scrollable) -->
+        <main id="content-container" class="flex-1 overflow-y-auto bg-bgSoft pb-24 hide-scrollbar">
+            
+            <!-- 1. 첫 화면 (Home View - Responsive Layout) -->
+            <section id="view-home" class="p-5 sm:p-8 space-y-6">
+                <!-- Banner -->
+                <div class="bg-gradient-to-r from-signature to-emerald-600 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-36 h-36 bg-white/10 rounded-full blur-xl"></div>
+                    <span class="bg-accentYellow text-gray-800 text-xs font-bold px-3 py-1 rounded-full inline-block mb-3 shadow-sm">AI 잔반 줄이기 프로젝트</span>
+                    <h2 class="text-2xl sm:text-3xl font-black mb-1">잔반 ZERO 도전! 🌿</h2>
+                    <p class="text-sm sm:text-base opacity-90 mb-5">오늘 급식 깔끔히 비우고<br>포인트로 매점 간식 사먹자!</p>
+                    <button onclick="switchTab('upload')" class="bg-white text-signature font-bold px-6 py-3 rounded-2xl text-sm shadow-md hover:bg-accentYellow hover:text-gray-900 transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">photo_camera</span>
+                        카메라로 잔반 인증하기
+                    </button>
+                </div>
+
+                <!-- Point Summary Box & Quick Stats -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div onclick="switchTab('store')" class="sm:col-span-2 bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-emerald-100 flex justify-between items-center cursor-pointer hover:border-signature transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600">
+                                <span class="material-symbols-outlined text-2xl sm:text-3xl">stars</span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-medium">나의 에코 포인트 (자동 저장)</p>
+                                <p class="text-xl sm:text-2xl font-black text-gray-800" id="user-points">1,250 P</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-signature bg-green-50 px-3 py-2 rounded-xl border border-green-200 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">storefront</span>
+                            매점 가기
+                        </span>
+                    </div>
+
+                    <!-- Environment Impact Mini Banner -->
+                    <div class="bg-emerald-600 text-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] opacity-80 font-medium">나의 에코 나무</p>
+                            <p class="text-lg font-black mt-0.5" id="user-tree-level">3단계 튼튼나무 🌳</p>
+                        </div>
+                        <span class="material-symbols-outlined text-3xl opacity-80 text-accentYellow">forest</span>
+                    </div>
+                </div>
+
+                <!-- Class Eco Competition Banner (반별 잔반 ZERO 랭킹) -->
+                <div class="bg-white rounded-3xl p-5 shadow-sm border border-emerald-100 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-signature text-lg">trophy</span>
+                            10월 4주차 학급 잔반 ZERO 랭킹
+                        </h3>
+                        <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">우리반 2위 🎉</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 font-semibold text-gray-700">
+                                <span>1위 : 2학년 3반 (98회 성공)</span>
+                                <span class="text-signature">98%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-amber-400 h-full rounded-full" style="width: 98%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 font-bold text-signature">
+                                <span>2위 : 2학년 1반 (우리반 - 92회)</span>
+                                <span>92%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-signature h-full rounded-full" style="width: 92%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1 font-semibold text-gray-500">
+                                <span>3위 : 1학년 5반 (85회 성공)</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-emerald-300 h-full rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons Grid -->
+                <div>
+                    <h3 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-signature text-xl">grid_view</span>
+                        주요 기능
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <button onclick="switchTab('list')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-signature transition text-left flex flex-col justify-between h-28 group">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-signature flex items-center justify-center group-hover:bg-signature group-hover:text-white transition">
+                                <span class="material-symbols-outlined">restaurant_menu</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">급식 캘린더</h4>
+                                <p class="text-xs text-gray-400">월간 식단 확인</p>
+                            </div>
+                        </button>
+
+                        <button onclick="switchTab('upload')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-signature transition text-left flex flex-col justify-between h-28 group">
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">카메라 잔반 인증</h4>
+                                <p class="text-xs text-gray-400">실시간 촬영 & 적립</p>
+                            </div>
+                        </button>
+
+                        <button onclick="switchTab('store')" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-signature transition text-left flex flex-col justify-between h-28 group">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition">
+                                <span class="material-symbols-outlined">storefront</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">에코 매점</h4>
+                                <p class="text-xs text-gray-400">포인트 간식 교환</p>
+                            </div>
+                        </button>
+
+                        <button onclick="openVoteModal()" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-signature transition text-left flex flex-col justify-between h-28 group">
+                            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition">
+                                <span class="material-symbols-outlined">how_to_vote</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">다음 주 메뉴 투표</h4>
+                                <p class="text-xs text-gray-400">희망 급식 투표하기</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Today's Featured Menu Showcase Box -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-md border border-emerald-100 space-y-4 relative overflow-hidden">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-signature animate-pulse"></span>
+                            <h3 class="font-extrabold text-gray-900 text-base sm:text-lg flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-signature text-xl">restaurant</span>
+                                오늘의 대표 급식
+                            </h3>
+                        </div>
+                        <span class="text-xs font-bold text-signature bg-green-50 border border-green-200 px-3 py-1 rounded-full flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">today</span>
+                            10월 31일 (금)
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <div class="relative w-full md:w-48 h-48 sm:h-40 shrink-0 rounded-2xl overflow-hidden shadow-sm group">
+                            <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80" alt="수제 함박스테이크" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <span class="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-amber-300 text-[11px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs fill">star</span>
+                                4.9점
+                            </span>
+                        </div>
+
+                        <div class="flex-1 space-y-2.5 w-full">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-bold text-white bg-signature px-2.5 py-0.5 rounded-md">점심 피크 픽</span>
+                                <span class="text-xs font-bold text-amber-800 bg-accentYellow px-2.5 py-0.5 rounded-md">예상 잔반율 15% (매우 낮음)</span>
+                            </div>
+                            <h4 class="text-lg sm:text-xl font-black text-gray-900 leading-tight">수제 함박스테이크 & 계란후라이</h4>
+                            <p class="text-xs sm:text-sm text-gray-600 bg-bgSoft p-3 rounded-xl border border-gray-100">
+                                🍱 <span class="font-bold text-gray-800">식단:</span> 흑미밥, 팽이버섯 미소국, 리코타치즈 샐러드, 배추김치, 샤인머스켓
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button onclick="switchTab('detail', 0)" class="w-full bg-bgSoft hover:bg-emerald-50 text-gray-800 hover:text-signature font-bold py-3 rounded-2xl text-xs sm:text-sm border border-gray-200 transition flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">info</span>
+                            영양성분 & 후기 보기
+                        </button>
+                        <button onclick="switchTab('upload')" class="w-full bg-signature hover:bg-signatureDark text-white font-bold py-3 rounded-2xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">photo_camera</span>
+                            잔반 ZERO 인증 (+300P)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 목록 화면 (List View) -->
+            <section id="view-list" class="p-5 sm:p-8 space-y-4 hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-gray-800">이번 주 급식 목록</h2>
+                        <p class="text-xs text-gray-500">등록된 급식 정보와 잔반율을 확인해보세요.</p>
+                    </div>
+                    <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full">10월 4주차</span>
+                </div>
+
+                <div id="meal-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Dynamic rendering by JS -->
+                </div>
+            </section>
+
+            <!-- 3. 입력 화면 (Upload / 카메라 인증하기 View) -->
+            <section id="view-upload" class="p-5 space-y-5 hidden">
+                <div class="text-center">
+                    <div class="inline-flex items-center gap-2 bg-white px-4 py-1.5 rounded-full shadow-sm border border-gray-200 text-sm font-bold text-gray-700 mb-1">
+                        <span class="material-symbols-outlined text-signature text-base">calendar_today</span>
+                        <span>오늘의 급식 인증</span>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-gray-800">카메라 잔반 인증</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">점심 또는 저녁을 선택 후 카메라로 촬영하세요.</p>
+                </div>
+
+                <!-- Lunch/Dinner Selector -->
+                <div class="flex gap-2 p-1 bg-gray-200/60 rounded-2xl">
+                    <button id="btn-select-lunch" onclick="selectMealType('lunch')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition bg-white text-signature shadow-sm">
+                        ☀️ 점심 인증 (+300P)
+                    </button>
+                    <button id="btn-select-dinner" onclick="selectMealType('dinner')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition text-gray-600">
+                        🌙 저녁 인증 (+300P)
+                    </button>
+                </div>
+
+                <!-- Camera Live Viewfinder & Scanner Frame -->
+                <div class="bg-gray-900 rounded-3xl overflow-hidden shadow-lg relative flex flex-col items-center justify-center min-h-[300px]">
+                    <video id="camera-video" autoplay playsinline muted class="w-full h-[300px] object-cover"></video>
+                    <canvas id="camera-canvas" class="hidden w-full h-[300px] object-cover"></canvas>
+                    <img id="mobile-photo-preview" src="" alt="촬영한 사진" class="hidden absolute inset-0 w-full h-full object-cover z-10">
+                    <img id="mock-camera-bg" src="https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=600&q=80" alt="식판 예시" class="absolute inset-0 w-full h-full object-cover opacity-80 pointer-events-none">
+
+                    <div class="absolute inset-4 border-2 border-dashed border-white/60 rounded-2xl pointer-events-none flex items-center justify-center z-20">
+                        <span class="text-white/80 text-xs bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">식판을 사각형 안에 맞춰주세요</span>
+                    </div>
+
+                    <div id="scan-beam" class="hidden absolute left-0 right-0 h-1 bg-signature shadow-[0_0_15px_#2BA84A] animate-bounce z-20"></div>
+
+                    <div id="camera-status" class="absolute top-3 left-3 bg-black/60 text-white text-[11px] px-3 py-1 rounded-full backdrop-blur-sm flex items-center gap-1 z-20">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span id="camera-status-text">카메라 대기 중</span>
+                    </div>
+                </div>
+
+                <input type="file" id="mobile-camera-input" accept="image/*" class="hidden" onchange="handleMobilePhotoUpload(event)">
+
+                <div class="flex items-center justify-center gap-4 pt-1">
+                    <button onclick="toggleCameraStream()" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-700 flex items-center justify-center shadow-md active:scale-95 transition" title="웹캠 다시 켜기">
+                        <span class="material-symbols-outlined text-xl">flip_camera_ios</span>
+                    </button>
+                    
+                    <button onclick="captureAndAnalyze()" class="w-16 h-16 p-1 rounded-full border-4 border-signature bg-white shadow-xl hover:scale-105 active:scale-90 transition flex items-center justify-center" title="실시간 웹캠 촬영">
+                        <div class="w-12 h-12 rounded-full bg-signature flex items-center justify-center text-white shadow-inner">
+                            <span class="material-symbols-outlined text-2xl">photo_camera</span>
+                        </div>
+                    </button>
+
+                    <button onclick="triggerMobileCamera()" class="w-16 h-16 p-1 rounded-full border-4 border-amber-400 bg-white shadow-xl hover:scale-105 active:scale-90 transition flex items-center justify-center" title="내 기기 파일에서 사진 선택">
+                        <div class="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center text-gray-900 font-bold shadow-inner flex-col text-[10px]">
+                            <span class="material-symbols-outlined text-xl">folder_open</span>
+                            <span>파일</span>
+                        </div>
+                    </button>
+
+                    <button onclick="resetCameraView()" class="w-12 h-12 rounded-full bg-white border border-gray-200 text-gray-700 flex items-center justify-center shadow-md active:scale-95 transition" title="초기화">
+                        <span class="material-symbols-outlined text-xl">refresh</span>
+                    </button>
+                </div>
+
+                <div id="analysis-result-card" class="hidden bg-white p-4 rounded-2xl border-2 border-emerald-500 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-signature text-sm flex items-center gap-1">
+                            <span class="material-symbols-outlined text-base">verified</span>
+                            AI 잔반 잔여율: 0% (완벽한 ZERO!)
+                        </span>
+                        <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full">+300 P 적립 완료</span>
+                    </div>
+                    <p class="text-xs text-gray-600">축하합니다! 잔반을 깨끗이 비워 300 에코 포인트를 획득하셨습니다. 정보가 안전하게 저장되었습니다.</p>
+                    <button onclick="switchTab('store')" class="w-full mt-2 bg-signature text-white font-bold py-2.5 rounded-xl text-xs hover:bg-signatureDark transition flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-sm">storefront</span>
+                        적립한 포인트로 간식 사러 가기
+                    </button>
+                </div>
+            </section>
+
+            <!-- 4. 에코 매점 화면 (Store View) -->
+            <section id="view-store" class="p-5 sm:p-8 space-y-5 hidden">
+                <div class="bg-gradient-to-r from-amber-400 to-amber-500 rounded-3xl p-5 sm:p-6 text-gray-900 shadow-sm relative overflow-hidden flex justify-between items-center">
+                    <div>
+                        <span class="text-xs font-bold bg-white/80 px-2.5 py-1 rounded-full text-amber-900">학교 매점 전용 모바일 쿠폰</span>
+                        <h2 class="text-xl sm:text-2xl font-black mt-1 text-gray-900">에코 포인트 매점 🏪</h2>
+                        <p class="text-xs sm:text-sm text-amber-900/80 mt-0.5">급식을 남기지 않고 모은 포인트로 구매하세요!</p>
+                    </div>
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 bg-white/30 rounded-2xl flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-3xl sm:text-4xl text-amber-950">cookie</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-amber-200 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-3xl text-amber-500">stars</span>
+                        <div>
+                            <p class="text-xs text-gray-400 font-medium">사용 가능한 포인트 (자동 저장)</p>
+                            <p class="text-xl sm:text-2xl font-black text-gray-800" id="store-user-points">1,250 P</p>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('upload')" class="bg-green-50 text-signature font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-green-200 hover:bg-signature hover:text-white transition flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">add</span>
+                        포인트 모으기
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-gray-800 text-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-signature text-lg">local_convenience_store</span>
+                        매점 인기 간식
+                    </h3>
+
+                    <div id="snack-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Dynamic Snack Cards -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 상세 화면 (Detail View & 후기 수정/삭제 지원) -->
+            <section id="view-detail" class="p-5 space-y-5 hidden">
+                <div class="flex items-center gap-2">
+                    <button onclick="switchTab('list')" class="p-1 rounded-full text-gray-600 hover:bg-gray-200 transition">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h2 class="text-lg font-bold text-gray-800">상세 식단 & 영양 정보</h2>
+                </div>
+
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
+                    <img id="detail-img" src="" alt="메뉴 이미지" class="w-full h-48 object-cover">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span id="detail-date" class="text-xs font-semibold text-signature bg-green-50 px-2 py-0.5 rounded"></span>
+                                <h3 id="detail-name" class="text-xl font-black text-gray-800 mt-1"></h3>
+                            </div>
+                            <div class="text-right">
+                                <div class="flex items-center gap-1 text-amber-500 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-base fill">star</span>
+                                    <span id="detail-rating"></span>
+                                </div>
+                                <span id="detail-waste" class="text-xs font-medium text-gray-500"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">식단 구성 목록</h4>
+                            <div id="detail-submenus" class="flex flex-wrap gap-1.5">
+                                <!-- Dynamic Submenu Chips -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-3">
+                    <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-signature text-lg">pie_chart</span>
+                        영양 성분 표 (1인분 기준)
+                    </h4>
+
+                    <div class="grid grid-cols-4 gap-2 text-center pt-2">
+                        <div class="bg-bgSoft p-3 rounded-2xl">
+                            <p class="text-[11px] text-gray-400 font-medium">열량</p>
+                            <p id="nutr-cal" class="text-sm font-black text-gray-800 mt-1">680 kcal</p>
+                        </div>
+                        <div class="bg-bgSoft p-3 rounded-2xl">
+                            <p class="text-[11px] text-gray-400 font-medium">탄수화물</p>
+                            <p id="nutr-carbs" class="text-sm font-black text-gray-800 mt-1">85g</p>
+                        </div>
+                        <div class="bg-bgSoft p-3 rounded-2xl">
+                            <p class="text-[11px] text-gray-400 font-medium">단백질</p>
+                            <p id="nutr-protein" class="text-sm font-black text-gray-800 mt-1">32g</p>
+                        </div>
+                        <div class="bg-bgSoft p-3 rounded-2xl">
+                            <p class="text-[11px] text-gray-400 font-medium">지방</p>
+                            <p id="nutr-fat" class="text-sm font-black text-gray-800 mt-1">18g</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Reviews Section (학번/이름 입력 & 수정/삭제 지원) -->
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-signature text-lg">chat</span>
+                            학생 한 줄 후기
+                        </h4>
+                        <span id="review-count" class="text-xs text-gray-400"></span>
+                    </div>
+
+                    <div id="reviews-list" class="space-y-2">
+                        <!-- Dynamic Reviews Rendered with Edit/Delete options -->
+                    </div>
+
+                    <!-- Input Box for Review (학번, 이름, 후기 내용 입력) -->
+                    <div class="pt-2">
+                        <div id="editing-badge" class="hidden flex items-center justify-between bg-amber-50 px-3 py-1 rounded-t-xl border border-amber-200 text-xs text-amber-800 mb-2">
+                            <span class="font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">edit_note</span> 후기 수정 모드 중
+                            </span>
+                            <button onclick="cancelReviewEdit()" class="text-xs font-semibold text-gray-500 hover:text-gray-800">취소</button>
+                        </div>
+                        
+                        <div class="bg-bgSoft p-3 rounded-2xl border border-gray-200 space-y-2">
+                            <!-- 학번 & 이름 입력 입력란 -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="relative">
+                                    <span class="absolute left-2.5 top-2.5 text-gray-400 text-xs font-bold">학번:</span>
+                                    <input type="text" id="review-student-id" placeholder="20315" maxlength="10" class="w-full bg-white pl-11 pr-3 py-2 rounded-xl text-xs font-bold text-gray-800 border border-gray-200 focus:outline-none focus:border-signature">
+                                </div>
+                                <div class="relative">
+                                    <span class="absolute left-2.5 top-2.5 text-gray-400 text-xs font-bold">이름:</span>
+                                    <input type="text" id="review-student-name" placeholder="홍길동" maxlength="10" class="w-full bg-white pl-11 pr-3 py-2 rounded-xl text-xs font-bold text-gray-800 border border-gray-200 focus:outline-none focus:border-signature">
+                                </div>
+                            </div>
+                            
+                            <!-- 후기 내용 입력 & 등록 버튼 -->
+                            <div class="flex gap-2">
+                                <input type="text" id="review-input" placeholder="급식 후기를 남겨주세요..." class="flex-1 bg-white px-4 py-2.5 rounded-xl text-xs border border-gray-200 focus:outline-none focus:border-signature">
+                                <button id="btn-submit-review" onclick="handleReviewSubmit()" class="bg-signature text-white font-bold px-4 py-2.5 rounded-xl text-xs hover:bg-signatureDark transition shrink-0 shadow-xs">
+                                    등록
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="switchTab('upload')" class="w-full bg-signature text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-signatureDark active:scale-98 transition flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">verified</span>
+                        나도 잔반 ZERO 인증하기 (+300P)
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 sm:px-12 py-2.5 flex justify-between items-center z-20">
+            <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center text-signature transition">
+                <span class="material-symbols-outlined text-2xl">home</span>
+                <span class="text-[10px] sm:text-xs font-bold mt-0.5">첫 화면</span>
+            </button>
+            
+            <button onclick="switchTab('list')" id="nav-list" class="nav-btn flex flex-col items-center text-gray-400 hover:text-signature transition">
+                <span class="material-symbols-outlined text-2xl">format_list_bulleted</span>
+                <span class="text-[10px] sm:text-xs font-bold mt-0.5">식단목록</span>
+            </button>
+
+            <button onclick="switchTab('upload')" id="nav-upload" class="flex flex-col items-center justify-center -mt-6 bg-signature text-white w-14 h-14 p-3 rounded-full shadow-lg border-4 border-white hover:scale-105 active:scale-95 transition">
+                <span class="material-symbols-outlined text-2xl">photo_camera</span>
+            </button>
+
+            <button onclick="switchTab('store')" id="nav-store" class="nav-btn flex flex-col items-center text-gray-400 hover:text-signature transition">
+                <span class="material-symbols-outlined text-2xl">storefront</span>
+                <span class="text-[10px] sm:text-xs font-bold mt-0.5">에코매점</span>
+            </button>
+
+            <button onclick="switchTab('detail', 0)" id="nav-detail" class="nav-btn flex flex-col items-center text-gray-400 hover:text-signature transition">
+                <span class="material-symbols-outlined text-2xl">analytics</span>
+                <span class="text-[10px] sm:text-xs font-bold mt-0.5">영양정보</span>
+            </button>
+        </nav>
+
+        <!-- Barcode Coupon Modal -->
+        <div id="coupon-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl relative">
+                <button onclick="closeCouponModal()" class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mx-auto">
+                    <span class="material-symbols-outlined text-3xl">confirmation_number</span>
+                </div>
+                <div>
+                    <span class="text-xs font-bold text-signature bg-green-50 px-2.5 py-1 rounded-full">구매 완료! (저장됨)</span>
+                    <h3 id="modal-snack-title" class="text-lg font-black text-gray-800 mt-2">빙그레 바나나맛 우유</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">매점 카운터에서 바코드를 제시하세요</p>
+                </div>
+                
+                <div class="bg-bgSoft p-4 rounded-2xl border border-gray-200 space-y-2">
+                    <div class="h-14 bg-gray-900 rounded flex items-center justify-between px-3">
+                        <div class="h-full w-full bg-[repeating-linear-gradient(90deg,#fff,#fff_2px,#000_2px,#000_6px)]"></div>
+                    </div>
+                    <p class="font-mono text-xs text-gray-600 tracking-widest" id="modal-barcode-num">ECO-2026-88392</p>
+                </div>
+
+                <button onclick="closeCouponModal()" class="w-full bg-signature text-white font-bold py-3 rounded-2xl text-xs hover:bg-signatureDark transition">
+                    확인 및 닫기
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification Popover -->
+        <div id="toast" class="absolute top-16 left-1/2 -translate-x-1/2 bg-gray-900/90 text-white text-xs px-4 py-2.5 rounded-full shadow-xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-1.5 whitespace-nowrap">
+            <span class="material-symbols-outlined text-base text-accentYellow">info</span>
+            <span id="toast-message">알림 메시지</span>
+        </div>
+
+        <!-- AI Nutritionist Chatbot Drawer Panel -->
+        <div id="ai-chat-drawer" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex flex-col justify-end hidden">
+            <div class="bg-white rounded-t-3xl p-5 space-y-4 max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-9 h-9 rounded-full bg-signature text-white flex items-center justify-center">
+                            <span class="material-symbols-outlined text-xl">smart_toy</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-sm">AI 영양사 도우미</h3>
+                            <p class="text-[10px] text-gray-400">무엇이든 물어보세요!</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleAIChat()" class="p-1 text-gray-400 hover:bg-gray-100 rounded-full">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 min-h-[200px] max-h-[300px] text-xs p-1">
+                    <div class="bg-emerald-50 text-emerald-900 p-3 rounded-2xl rounded-tl-none max-w-[85%]">
+                        👋 안녕하세요! 오늘 급식 영양 성분이나 궁금한 점을 직접 물어보세요!
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 pt-1">
+                    <button onclick="sendChatMessage('오늘 급식 칼로리가 높나요?')" class="bg-bgSoft hover:bg-emerald-100 text-gray-700 font-medium px-3 py-1.5 rounded-full text-xs">
+                        ⚡ 오늘 급식 칼로리는?
+                    </button>
+                    <button onclick="sendChatMessage('알레르기 유발 성분 알려줘')" class="bg-bgSoft hover:bg-emerald-100 text-gray-700 font-medium px-3 py-1.5 rounded-full text-xs">
+                        🥛 알레르기 성분은?
+                    </button>
+                    <button onclick="sendChatMessage('잔반 줄이면 뭐가 좋아?')" class="bg-bgSoft hover:bg-emerald-100 text-gray-700 font-medium px-3 py-1.5 rounded-full text-xs">
+                        🌱 잔반 줄이면 좋은 점
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1 border-t border-gray-100">
+                    <input type="text" id="ai-chat-input" onkeypress="if(event.key === 'Enter') handleCustomAIChatSubmit()" placeholder="AI 영양사에게 질문 입력..." class="flex-1 bg-bgSoft px-4 py-2.5 rounded-xl text-xs border border-gray-200 focus:outline-none focus:border-signature">
+                    <button onclick="handleCustomAIChatSubmit()" class="bg-signature text-white font-bold p-2.5 rounded-xl text-xs hover:bg-signatureDark transition shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-base">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Vote Modal -->
+        <div id="vote-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-5 hidden">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center space-y-4 shadow-2xl relative">
+                <button onclick="closeVoteModal()" class="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto">
+                    <span class="material-symbols-outlined text-2xl">how_to_vote</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-gray-800">다음 주 희망 메뉴 투표 🗳️</h3>
+                    <p class="text-xs text-gray-500 mt-1">가장 먹고 싶은 1위 메뉴가 다음 주 식단에 반영돼요!</p>
+                </div>
+
+                <div class="space-y-2 text-left">
+                    <button onclick="castVote('로제 떡볶이 & 김말이')" class="w-full p-3 bg-bgSoft hover:bg-purple-50 hover:border-purple-300 border border-gray-200 rounded-2xl flex justify-between items-center transition">
+                        <span class="text-xs font-bold text-gray-800">1. 로제 떡볶이 & 김말이</span>
+                        <span class="text-xs font-bold text-purple-600">45% (128표)</span>
+                    </button>
+                    <button onclick="castVote('수제 왕돈까스')" class="w-full p-3 bg-bgSoft hover:bg-purple-50 hover:border-purple-300 border border-gray-200 rounded-2xl flex justify-between items-center transition">
+                        <span class="text-xs font-bold text-gray-800">2. 수제 왕돈까스</span>
+                        <span class="text-xs font-bold text-purple-600">32% (91표)</span>
+                    </button>
+                    <button onclick="castVote('뿌링클 치킨 & 치즈볼')" class="w-full p-3 bg-bgSoft hover:bg-purple-50 hover:border-purple-300 border border-gray-200 rounded-2xl flex justify-between items-center transition">
+                        <span class="text-xs font-bold text-gray-800">3. 뿌링클 치킨 & 치즈볼</span>
+                        <span class="text-xs font-bold text-purple-600">23% (65표)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic with LocalStorage & Review Editing -->
+    <script>
+        // Storage Keys
+        const STORAGE_POINTS_KEY = 'eco_lunch_user_points';
+        const STORAGE_MEALS_KEY = 'eco_lunch_meals_data';
+        const STORAGE_STUDENT_ID_KEY = 'eco_lunch_last_student_id';
+        const STORAGE_STUDENT_NAME_KEY = 'eco_lunch_last_student_name';
+
+        // Default Initial Meal Data (with studentId & studentName fields)
+        const defaultMealsData = [
+            {
+                id: 0,
+                date: '10월 31일 (금)',
+                name: '수제 함박스테이크 & 계란후라이',
+                waste: '예상 잔반율: 15%',
+                rating: 4.9,
+                img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+                submenus: ['수제 함박스테이크', '흑미밥', '팽이버섯 미소국', '리코타치즈 샐러드', '배추김치', '샤인머스켓'],
+                calories: '680 kcal',
+                carbs: '85g',
+                protein: '32g',
+                fat: '18g',
+                reviews: [
+                    { id: 'rev_1', studentId: '20101', studentName: '김민준', user: '20101 김민준', text: '함박스테이크 너무 고소하고 맛있어요! 잔반 하나도 안 남겼어요.', isMine: false },
+                    { id: 'rev_2', studentId: '10305', studentName: '이서연', user: '10305 이서연', text: '소스가 대박입니다. 오늘 포인트 인증 완료!', isMine: false }
+                ]
+            },
+            {
+                id: 1,
+                date: '11월 01일 (토)',
+                name: '매콤 마라탕 & 꿔바로우',
+                waste: '예상 잔반율: 8%',
+                rating: 4.95,
+                img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80',
+                submenus: ['마라탕', '찹쌀 꿔바로우', '계란볶음밥', '짜사이', '단무지', '요구르트'],
+                calories: '740 kcal',
+                carbs: '92g',
+                protein: '28g',
+                fat: '22g',
+                reviews: [
+                    { id: 'rev_3', studentId: '30512', studentName: '박지훈', user: '30512 박지훈', text: '마라탕 나오는 날은 무조건 완식이죠! 매점 바나나우유 사먹었어요.', isMine: false }
+                ]
+            },
+            {
+                id: 2,
+                date: '11월 03일 (월)',
+                name: '치즈 돈까스 & 오일 파스타',
+                waste: '예상 잔반율: 12%',
+                rating: 4.8,
+                img: 'https://images.unsplash.com/photo-1585238342024-78d387f4a707?auto=format&fit=crop&w=600&q=80',
+                submenus: ['통치즈 돈까스', '알리오 올리오 파스타', '크림스프', '모둠 피클', '양상추 샐러드'],
+                calories: '710 kcal',
+                carbs: '88g',
+                protein: '30g',
+                fat: '20g',
+                reviews: [
+                    { id: 'rev_4', studentId: '20215', studentName: '최수아', user: '20215 최수아', text: '치즈 진짜 길게 늘어나요 ㅎㅎ 맛있게 먹었습니다.', isMine: false }
+                ]
+            }
+        ];
+
+        // Snack Data
+        const storeSnacks = [
+            { id: 's1', name: '빙그레 바나나맛 우유', price: 1000, img: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=300&q=80', tag: 'BEST 인기' },
+            { id: 's2', name: '포켓몬 빵 (띠부씰 포함)', price: 1500, img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80', tag: '매진 임박' },
+            { id: 's3', name: '초코에몽 250ml', price: 1200, img: 'https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=300&q=80', tag: '달콤 초코' },
+            { id: 's4', name: '멘토스 롤 사탕', price: 500, img: 'https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?auto=format&fit=crop&w=300&q=80', tag: '가성비' },
+            { id: 's5', name: '바삭 바닐라 아이스크림', price: 800, img: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?auto=format&fit=crop&w=300&q=80', tag: '시원함' }
+        ];
+
+        // Global Dynamic States
+        let mealsData = [];
+        let userPoints = 1250;
+        let selectedMealId = 0;
+        let currentStream = null;
+        let selectedMealType = 'lunch';
+        let editingReviewId = null; // Currently editing review ID
+
+        // Load Persisted Data Function
+        function loadPersistedData() {
+            try {
+                // Load Points
+                const savedPoints = localStorage.getItem(STORAGE_POINTS_KEY);
+                if (savedPoints !== null) {
+                    userPoints = parseInt(savedPoints, 10);
+                } else {
+                    userPoints = 1250;
+                }
+
+                // Load Meals & Reviews Data
+                const savedMeals = localStorage.getItem(STORAGE_MEALS_KEY);
+                if (savedMeals !== null) {
+                    mealsData = JSON.parse(savedMeals);
+                } else {
+                    mealsData = JSON.parse(JSON.stringify(defaultMealsData));
+                }
+
+                // Load last used student ID and Name
+                const lastStudentId = localStorage.getItem(STORAGE_STUDENT_ID_KEY) || '20315';
+                const lastStudentName = localStorage.getItem(STORAGE_STUDENT_NAME_KEY) || '홍길동';
+                
+                const idInput = document.getElementById('review-student-id');
+                const nameInput = document.getElementById('review-student-name');
+                if (idInput && !idInput.value) idInput.value = lastStudentId;
+                if (nameInput && !nameInput.value) nameInput.value = lastStudentName;
+
+            } catch (e) {
+                console.error("Storage load error:", e);
+                userPoints = 1250;
+                mealsData = JSON.parse(JSON.stringify(defaultMealsData));
+            }
+            updatePointsDisplay();
+        }
+
+        // Save State to LocalStorage
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_POINTS_KEY, userPoints.toString());
+                localStorage.setItem(STORAGE_MEALS_KEY, JSON.stringify(mealsData));
+            } catch (e) {
+                console.error("Storage save error:", e);
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabName, mealId = null) {
+            const views = ['home', 'list', 'upload', 'detail', 'store'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (tabName !== 'upload') {
+                stopCameraStream();
+            } else {
+                initCameraStream();
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-signature');
+                btn.classList.add('text-gray-400');
+            });
+
+            if (tabName === 'menu') {
+                showToast('전체 메뉴 카테고리 기능 준비 중입니다.');
+                tabName = 'list';
+            }
+
+            const activeView = document.getElementById(`view-${tabName}`);
+            if (activeView) activeView.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav && tabName !== 'upload') {
+                activeNav.classList.remove('text-gray-400');
+                activeNav.classList.add('text-signature');
+            }
+
+            if (mealId !== null) {
+                loadDetailScreen(mealId);
+            }
+
+            document.getElementById('content-container').scrollTop = 0;
+        }
+
+        // Camera WebRTC Stream Handling
+        async function initCameraStream() {
+            const video = document.getElementById('camera-video');
+            const mockBg = document.getElementById('mock-camera-bg');
+            const statusText = document.getElementById('camera-status-text');
+
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
+                        }
+                    };
+                    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    video.srcObject = currentStream;
+                    video.classList.remove('hidden');
+                    mockBg.classList.add('hidden');
+                    statusText.textContent = '실시간 카메라 작동 중';
+                } else {
+                    throw new Error('Camera API support issue');
+                }
+            } catch (err) {
+                video.classList.add('hidden');
+                mockBg.classList.remove('hidden');
+                statusText.textContent = '스마트폰은 [파일] 버튼을 눌러주세요!';
+            }
+        }
+
+        function triggerMobileCamera() {
+            document.getElementById('mobile-camera-input').click();
+        }
+
+        function handleMobilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('mobile-photo-preview');
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('hidden');
+                document.getElementById('mock-camera-bg').classList.add('hidden');
+                
+                captureAndAnalyze();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function stopCameraStream() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        function toggleCameraStream() {
+            if (currentStream) {
+                stopCameraStream();
+                showToast('카메라가 일시 정지되었습니다.');
+            } else {
+                initCameraStream();
+                showToast('카메라를 다시 켭니다.');
+            }
+        }
+
+        function selectMealType(type) {
+            selectedMealType = type;
+            const lunchBtn = document.getElementById('btn-select-lunch');
+            const dinnerBtn = document.getElementById('btn-select-dinner');
+
+            if (type === 'lunch') {
+                lunchBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs transition bg-white text-signature shadow-sm';
+                dinnerBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs transition text-gray-600';
+            } else {
+                dinnerBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs transition bg-white text-signature shadow-sm';
+                lunchBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs transition text-gray-600';
+            }
+            resetCameraView();
+        }
+
+        function captureAndAnalyze() {
+            const beam = document.getElementById('scan-beam');
+            const resultCard = document.getElementById('analysis-result-card');
+            
+            beam.classList.remove('hidden');
+            showToast('AI 잔반 정밀 분석 스캔 중...');
+
+            setTimeout(() => {
+                beam.classList.add('hidden');
+                resultCard.classList.remove('hidden');
+                showToast('잔반 인증 완료! +300P 적립 및 자동 저장!');
+                updatePoints(300);
+            }, 1800);
+        }
+
+        function resetCameraView() {
+            document.getElementById('analysis-result-card').classList.add('hidden');
+            document.getElementById('scan-beam').classList.add('hidden');
+            document.getElementById('mobile-photo-preview').classList.add('hidden');
+            document.getElementById('mobile-photo-preview').src = '';
+            initCameraStream();
+        }
+
+        // Render Calendar List View
+        function renderListScreen() {
+            const container = document.getElementById('meal-list-container');
+            if (!container) return;
+
+            const days = [
+                { day: '월', date: '27', name: '치즈 돈까스', waste: '12%', rating: '4.8', icon: 'lunch_dining', id: 2 },
+                { day: '화', date: '28', name: '비빔밥 & 계란국', waste: '20%', rating: '4.6', icon: 'rice_bowl', id: 0 },
+                { day: '수', date: '29', name: '짜장면 & 탕수육', waste: '10%', rating: '4.9', icon: 'ramen_dining', id: 1 },
+                { day: '목', date: '30', name: '닭갈비 덮밥', waste: '18%', rating: '4.7', icon: 'kebab_dining', id: 0 },
+                { day: '금', date: '31', name: '수제 함박스테이크', waste: '15%', rating: '4.9', icon: 'dinner_dining', id: 0, isToday: true }
+            ];
+
+            let html = `
+                <div class="col-span-full bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-emerald-100 space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-signature text-xl">calendar_month</span>
+                            <h3 class="font-bold text-gray-800 text-sm sm:text-base">2026년 10월 4주차 식단표</h3>
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">이번 주 잔반 ZERO 챌린지</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-1.5 sm:gap-3 text-center">
+            `;
+
+            days.forEach(item => {
+                const borderClass = item.isToday ? 'border-2 border-signature bg-green-50/50' : 'border border-gray-100 bg-bgSoft';
+                const todayTag = item.isToday ? '<span class="text-[9px] font-bold text-white bg-signature px-1.5 py-0.5 rounded-full mb-1">오늘</span>' : '';
+                
+                html += `
+                    <div onclick="switchTab('detail', ${item.id})" class="${borderClass} p-2 sm:p-3 rounded-2xl flex flex-col justify-between items-center cursor-pointer hover:scale-105 transition shadow-xs">
+                        <div class="flex flex-col items-center">
+                            ${todayTag}
+                            <span class="text-xs text-gray-400 font-medium">${item.day}</span>
+                            <span class="text-base sm:text-lg font-black text-gray-800 leading-none my-0.5">${item.date}</span>
+                        </div>
+                        <div class="my-2 text-signature">
+                            <span class="material-symbols-outlined text-2xl sm:text-3xl">${item.icon}</span>
+                        </div>
+                        <div class="w-full text-center">
+                            <p class="text-[11px] font-bold text-gray-800 truncate w-full">${item.name}</p>
+                            <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md inline-block mt-1">잔반 ${item.waste}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Render Eco Store Snacks
+        function renderStoreScreen() {
+            const container = document.getElementById('snack-list-container');
+            if (!container) return;
+
+            let html = '';
+            storeSnacks.forEach(snack => {
+                html += `
+                    <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-amber-300 transition">
+                        <div class="flex items-center gap-3">
+                            <img src="${snack.img}" alt="${snack.name}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shrink-0">
+                            <div>
+                                <span class="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">${snack.tag}</span>
+                                <h4 class="font-bold text-gray-800 text-xs sm:text-sm mt-1">${snack.name}</h4>
+                                <p class="text-xs font-black text-signature mt-0.5">${snack.price.toLocaleString()} P</p>
+                            </div>
+                        </div>
+                        <button onclick="buySnack('${snack.id}')" class="bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold px-3 py-2 rounded-xl text-xs shadow-xs transition flex items-center gap-1 shrink-0">
+                            <span class="material-symbols-outlined text-sm">shopping_cart</span>
+                            구매
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Snack Purchase Logic
+        function buySnack(snackId) {
+            const snack = storeSnacks.find(s => s.id === snackId);
+            if (!snack) return;
+
+            if (userPoints < snack.price) {
+                showToast(`포인트가 부족합니다! (필요: ${snack.price}P)`);
+                return;
+            }
+
+            updatePoints(-snack.price);
+            document.getElementById('modal-snack-title').textContent = snack.name;
+            document.getElementById('modal-barcode-num').textContent = `ECO-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
+            document.getElementById('coupon-modal').classList.remove('hidden');
+        }
+
+        function closeCouponModal() {
+            document.getElementById('coupon-modal').classList.add('hidden');
+        }
+
+        // Detail Screen Loader
+        function loadDetailScreen(mealId) {
+            selectedMealId = mealId;
+            cancelReviewEdit(); // Reset edit state when loading a meal
+            const meal = mealsData.find(m => m.id === mealId) || mealsData[0];
+
+            document.getElementById('detail-img').src = meal.img;
+            document.getElementById('detail-date').textContent = meal.date;
+            document.getElementById('detail-name').textContent = meal.name;
+            document.getElementById('detail-rating').textContent = meal.rating;
+            document.getElementById('detail-waste').textContent = meal.waste;
+
+            document.getElementById('nutr-cal').textContent = meal.calories;
+            document.getElementById('nutr-carbs').textContent = meal.carbs;
+            document.getElementById('nutr-protein').textContent = meal.protein;
+            document.getElementById('nutr-fat').textContent = meal.fat;
+
+            const subContainer = document.getElementById('detail-submenus');
+            subContainer.innerHTML = meal.submenus.map(sub => 
+                `<span class="bg-bgSoft text-gray-700 text-xs px-3 py-1.5 rounded-xl border border-gray-100 font-medium">${sub}</span>`
+            ).join('');
+
+            renderReviews(meal);
+        }
+
+        // Render Reviews List with Edit/Delete Controls for User Created Reviews
+        function renderReviews(meal) {
+            const list = document.getElementById('reviews-list');
+            document.getElementById('review-count').textContent = `총 ${meal.reviews.length}개`;
+            
+            if (meal.reviews.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">등록된 후기가 없습니다. 첫 후기를 남겨보세요!</p>`;
+                return;
+            }
+
+            list.innerHTML = meal.reviews.map(rev => {
+                const isMine = rev.isMine || rev.user.includes('나 (학생)');
+                const authorDisplay = rev.studentId && rev.studentName 
+                    ? `${rev.studentId} ${rev.studentName}` 
+                    : rev.user;
+
+                return `
+                    <div class="bg-bgSoft p-3.5 rounded-2xl text-xs space-y-1.5 border border-gray-100 flex justify-between items-start group">
+                        <div class="space-y-1 flex-1 pr-2">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-800">${escapeHtml(authorDisplay)}</span>
+                                ${isMine ? '<span class="text-[9px] bg-signature text-white font-bold px-1.5 py-0.2 rounded">내 작성글</span>' : ''}
+                            </div>
+                            <p class="text-gray-700 leading-relaxed break-all" id="review-text-${rev.id}">${escapeHtml(rev.text)}</p>
+                        </div>
+                        ${isMine ? `
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="startEditReview('${rev.id}')" class="p-1 text-gray-400 hover:text-signature transition rounded" title="수정">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                </button>
+                                <button onclick="deleteReview('${rev.id}')" class="p-1 text-gray-400 hover:text-red-500 transition rounded" title="삭제">
+                                    <span class="material-symbols-outlined text-base">delete</span>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Handle Review Submission (Supports Student ID, Name, New Addition and Editing)
+        function handleReviewSubmit() {
+            const studentIdInput = document.getElementById('review-student-id');
+            const studentNameInput = document.getElementById('review-student-name');
+            const reviewInput = document.getElementById('review-input');
+
+            const studentId = studentIdInput.value.trim();
+            const studentName = studentNameInput.value.trim();
+            const text = reviewInput.value.trim();
+
+            if (!studentId || !studentName) {
+                showToast('학번과 이름을 입력해주세요.');
+                return;
+            }
+
+            if (!text) {
+                showToast('후기 내용을 입력해주세요.');
+                return;
+            }
+
+            // Save last used student info to LocalStorage
+            try {
+                localStorage.setItem(STORAGE_STUDENT_ID_KEY, studentId);
+                localStorage.setItem(STORAGE_STUDENT_NAME_KEY, studentName);
+            } catch(e) {}
+
+            const meal = mealsData.find(m => m.id === selectedMealId);
+            if (!meal) return;
+
+            const userTitle = `${studentId} ${studentName}`;
+
+            if (editingReviewId) {
+                // Edit Existing Review
+                const targetReview = meal.reviews.find(r => r.id === editingReviewId);
+                if (targetReview) {
+                    targetReview.studentId = studentId;
+                    targetReview.studentName = studentName;
+                    targetReview.user = userTitle;
+                    targetReview.text = text;
+                    
+                    saveData();
+                    renderReviews(meal);
+                    cancelReviewEdit();
+                    showToast('후기가 수정되었습니다!');
+                }
+            } else {
+                // Add New Review
+                const newId = 'rev_' + Date.now();
+                const newRev = {
+                    id: newId,
+                    studentId: studentId,
+                    studentName: studentName,
+                    user: userTitle,
+                    text: text,
+                    isMine: true
+                };
+                meal.reviews.unshift(newRev);
+                updatePoints(50);
+                saveData();
+                renderReviews(meal);
+                reviewInput.value = '';
+                showToast('후기가 등록되었습니다! +50P 적립 및 자동 저장');
+            }
+        }
+
+        // Start Review Edit Mode
+        function startEditReview(reviewId) {
+            const meal = mealsData.find(m => m.id === selectedMealId);
+            if (!meal) return;
+
+            const rev = meal.reviews.find(r => r.id === reviewId);
+            if (!rev) return;
+
+            editingReviewId = reviewId;
+            
+            document.getElementById('review-student-id').value = rev.studentId || '';
+            document.getElementById('review-student-name').value = rev.studentName || '';
+            
+            const input = document.getElementById('review-input');
+            input.value = rev.text;
+            input.focus();
+
+            document.getElementById('editing-badge').classList.remove('hidden');
+            document.getElementById('btn-submit-review').textContent = '수정 완료';
+            document.getElementById('btn-submit-review').className = 'bg-amber-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs hover:bg-amber-600 transition shrink-0 shadow-xs';
+        }
+
+        // Cancel Review Edit Mode
+        function cancelReviewEdit() {
+            editingReviewId = null;
+            const input = document.getElementById('review-input');
+            if (input) input.value = '';
+
+            const badge = document.getElementById('editing-badge');
+            if (badge) badge.classList.add('hidden');
+
+            const btn = document.getElementById('btn-submit-review');
+            if (btn) {
+                btn.textContent = '등록';
+                btn.className = 'bg-signature text-white font-bold px-4 py-2.5 rounded-xl text-xs hover:bg-signatureDark transition shrink-0 shadow-xs';
+            }
+
+            // Restore stored default student info
+            const idInput = document.getElementById('review-student-id');
+            const nameInput = document.getElementById('review-student-name');
+            if (idInput) idInput.value = localStorage.getItem(STORAGE_STUDENT_ID_KEY) || '20315';
+            if (nameInput) nameInput.value = localStorage.getItem(STORAGE_STUDENT_NAME_KEY) || '홍길동';
+        }
+
+        // Delete Review
+        function deleteReview(reviewId) {
+            const meal = mealsData.find(m => m.id === selectedMealId);
+            if (!meal) return;
+
+            meal.reviews = meal.reviews.filter(r => r.id !== reviewId);
+            saveData();
+            renderReviews(meal);
+            if (editingReviewId === reviewId) {
+                cancelReviewEdit();
+            }
+            showToast('후기가 삭제 되었습니다.');
+        }
+
+        // Point Management
+        function updatePoints(amount) {
+            userPoints += amount;
+            if (userPoints < 0) userPoints = 0;
+            saveData();
+            updatePointsDisplay();
+        }
+
+        function updatePointsDisplay() {
+            document.getElementById('user-points').textContent = `${userPoints.toLocaleString()} P`;
+            document.getElementById('store-user-points').textContent = `${userPoints.toLocaleString()} P`;
+        }
+
+        // Reset All Data Confirm
+        function resetAllDataDataConfirm() {
+            if (confirm('모든 잔반 적립 포인트와 작성한 후기 데이터가 초기화됩니다. 정말 진행할까요?')) {
+                localStorage.removeItem(STORAGE_POINTS_KEY);
+                localStorage.removeItem(STORAGE_MEALS_KEY);
+                localStorage.removeItem(STORAGE_STUDENT_ID_KEY);
+                localStorage.removeItem(STORAGE_STUDENT_NAME_KEY);
+                loadPersistedData();
+                renderReviews(mealsData[selectedMealId]);
+                showToast('초기 상태로 리셋되었습니다.');
+            }
+        }
+
+        // AI Nutritionist Drawer & Interaction
+        function toggleAIChat() {
+            const drawer = document.getElementById('ai-chat-drawer');
+            drawer.classList.toggle('hidden');
+        }
+
+        function handleCustomAIChatSubmit() {
+            const input = document.getElementById('ai-chat-input');
+            const question = input.value.trim();
+            if (!question) return;
+
+            sendChatMessage(question);
+            input.value = '';
+        }
+
+        function sendChatMessage(text) {
+            const chatContainer = document.getElementById('chat-messages');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'bg-signature text-white p-3 rounded-2xl rounded-tr-none max-w-[85%] ml-auto text-right';
+            userMsg.textContent = text;
+            chatContainer.appendChild(userMsg);
+
+            setTimeout(() => {
+                let reply = '오늘 급식은 단백질과 영양소가 균형 있게 구성되어 잔반 없이 맛있게 드시기 좋습니다!';
+                if (text.includes('칼로리')) {
+                    reply = '오늘 수제 함박스테이크 급식은 약 680kcal로 고등학생 권장 점심 열량에 딱 맞춰져 있습니다.';
+                } else if (text.includes('알레르기')) {
+                    reply = '오늘 식단에는 우유, 대두, 밀, 계란 성분이 포함되어 있으니 해당 알레르기가 있다면 주의하세요!';
+                } else if (text.includes('잔반')) {
+                    reply = '급식을 비우면 환경보호는 물론, 에코 포인트를 모아 매점에서 무료 간식을 사먹을 수 있답니다 🌿';
+                }
+
+                const botMsg = document.createElement('div');
+                botMsg.className = 'bg-emerald-50 text-emerald-900 p-3 rounded-2xl rounded-tl-none max-w-[85%]';
+                botMsg.textContent = reply;
+                chatContainer.appendChild(botMsg);
+
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 600);
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Vote Modal
+        function openVoteModal() {
+            document.getElementById('vote-modal').classList.remove('hidden');
+        }
+
+        function closeVoteModal() {
+            document.getElementById('vote-modal').classList.add('hidden');
+        }
+
+        function castVote(menuName) {
+            closeVoteModal();
+            showToast(`'${menuName}'에 투표 완료! +50P 적립 및 자동 저장`);
+            updatePoints(50);
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        // Utility: Escape HTML String
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initialize App & Load Data from LocalStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPersistedData();
+            renderListScreen();
+            renderStoreScreen();
+            loadDetailScreen(0);
+        });
+    </script>
+</body>
+</html>
